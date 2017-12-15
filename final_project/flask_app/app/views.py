@@ -4,7 +4,6 @@ from flask import jsonify, render_template
 from . import myapp
 import sys
 sys.path.append("../")
-from helper import _remove_outlier
 print('views.py')
 
 
@@ -47,3 +46,10 @@ def view_test_data():
     with open("app/templates/data.tsv", "r") as data_file:
         data = data_file.read()
         return data
+
+def _remove_outlier(data_dict):
+    outlier_list = ['TOTAL', 'LAY KENNETH L', 'SKILLING JEFFREY K']
+    for name in list(data_dict.keys()):
+        if name in outlier_list:
+            data_dict.pop(name)
+    return data_dict

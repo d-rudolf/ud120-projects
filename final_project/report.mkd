@@ -1,0 +1,96 @@
+## Udacity project 'Fraud Identification from Enron Emails'
+
+#### 0. Project documentation
+
+Clone the project from github:
+```
+$ git clone git@github.com:d-rudolf/ud120-projects.git && cd ud120-projects && git checkout project_submission 
+```
+
+The branch for project submission is project_submission, not master
+The fastest way to run the code is to use pipenv.
+Install pipenv:
+```
+$ pip install pipenv
+```
+I used python 3.5 throughout the project. Therefore, create a new project with python 3 interpreter:
+```
+$ pipenv --python 3.5
+```
+Install all dependencies from the Pipfile.lock. You should copy the Pipfile.lock file to the pipenv project directory. 
+```
+$ pipenv install --dev
+```
+To run the machine learning code enter
+```
+$ yourpath/ud120-projects/final_project$ python poi_id.py 
+```
+For helper functions I wrote a helper.py file, which is in the same folder as the poi_id.py file. 
+I also wrote a small flask app to visualize the data. To run it locally enter
+```
+$ cd flask_app && python manage.py runserver 
+```
+
+Then, enter 
+```
+http://localhost:8080/
+``` 
+in the browser to use the app. The app allows to plot two features on the x- and y-axis. 
+Select two buttons and press the plot button. To clear the plot press the clear button.
+
+#### 1. Goal of this project and how machine learning is useful in trying to accomplish it (data exploration, outlier investigation)
+
+The data for this project is partly from the public Enron email dataset (https://www.cs.cmu.edu/~enron/) and partly from financial data from findlaw.com (http://news.findlaw.com/hdocs/docs/enron/enron61702insiderpay.pdf). 
+The data can be roughly classified in three classes, which are income and stock data and email statistics. There is also a feature shared receipt with poi, which does fall into any of the three classes. The features are sumerized in Tab. 1.  
+<table>  
+    <tr>
+        <td>income data </td> 
+        <td> stock data </td>  
+        <td> email statistics </td> 
+        <td> misc </td> </tr>
+    <tr>
+        <td>salary, bonus, deferral payments, deferred income, 
+        director fees, expenses, loan advances, long term incentive,
+        total payments
+        </td> 
+        <td> exercised stock options, restricted stock, 
+        restricted stock deferred, total stock value 
+        </td>
+        <td>number of total from/to messages, number of messages
+        from/to 
+        poi
+        </td>
+        <td> shared receipt with poi 
+     <tr>
+</table>
+Tab. 1
+
+The goal is to build a model based on the features in Tab. 1 that correctly predicts whether a person is involved in fraud or not (poi = 1 or poi = 0).
+
+
++ background on the dataset and how it can be used to answer the project question.
++ Were there any outliers in the data when you got it, and how did you handle those?, relevant rubric items: “data exploration”, “outlier investigation”
+
+#### 2. Features (create new features, intelligently select features, properly scale features)
+
++ What features did you end up using in your POI identifier, and what selection process did you use to pick them?
++ Did you have to do any scaling? Why or why not? 
++ As part of the assignment, you should attempt to engineer your own feature that does not come ready-made in the dataset -- explain what feature you tried to make, and the rationale behind it. 
++ In your feature selection step, if you used an algorithm like a decision tree, please also give the feature importances of the features that you use, and if you used an automated feature selection function like SelectKBest, please report the feature scores and reasons for your choice of parameter values.
+
+#### 3. Algorithm (pick an algorithm)
++ What algorithm did you end up using? 
++ What other one(s) did you try? How did model performance differ between algorithms?
+
+#### 4. Parameter tuning
++ What does it mean to tune the parameters of an algorithm, and what can happen if you don’t do this well?
++  How did you tune the parameters of your particular algorithm? What parameters did you tune?
+
+#### 5. Valdidation strategy
++ What is validation, and what’s a classic mistake you can make if you do it wrong?
++ How did you validate your analysis?
+
+#### 6. Usage of evaluation metrics
++ Give at least 2 evaluation metrics and your average performance for each of them. 
++  Explain an interpretation of your metrics that says something human-understandable about your algorithm’s performance.
+

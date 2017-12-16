@@ -1,6 +1,8 @@
+from collections import defaultdict
 from pprint import pprint
 from time import time
 import sys
+import copy
 import itertools
 import numpy as np
 from sklearn import svm, linear_model
@@ -150,8 +152,8 @@ def _get_parameters():
     parameters = {#'feat_select__k': (18, 19),
                   'dim_reduct__n_components': (3, 5, 7, 9, 11),
                   'clf__kernel': ('rbf',),
-                  'clf__C': (1e2, 5e2, 1e3),
-                  'clf__gamma': (0.5e-1, 1e-1, 5e-1)
+                  'clf__C': (5e1, 7e1, 8e1),
+                  'clf__gamma': (1e-1, 5e-1, 1e0)
                   }
     return parameters
 
@@ -191,7 +193,7 @@ def _evaluate_grid_search(grid_search, mypipeline, parameters, feature, label, s
     t0 = time()
     grid_search.fit(feature, label)
     print("done in {0:.3f} s".format(time() - t0))
-    print(grid_search.cv_results_)
+    #print(grid_search.cv_results_)
     print("Scorer: {0}".format(grid_search.scorer_))
     print("Best score: {0:.3f}".format(grid_search.best_score_))
     print("Best estimator: {0}".format(grid_search.best_estimator_))
@@ -201,12 +203,53 @@ def _evaluate_grid_search(grid_search, mypipeline, parameters, feature, label, s
         print("\t%s: %r" % (param_name, best_parameters[param_name]))
 
 def _test_pipeline(pipeline, params, feature_train, label_train, data_dict, features_list, folds):
+    """
+    evaluates the classifier for all parameters using tester.py
+    :param pipeline:
+    :param params:
+    :param feature_train:
+    :param label_train:
+    :param data_dict:
+    :param features_list:
+    :param folds: number of folds in StratifiedShuffleSplit
+    :return: score_stats, {'precision': (mean, std), 'recall': (mean, std), 'accuracy': (mean, std), 'clf': clf }
+    """
     params_names = params.keys()
     params_values = list(params.values())
     params_values_product = list(itertools.product(*params_values))
+    score_stats_list = []
     for value_set in params_values_product:
         kwargs = {name: value for name, value in zip(params_names, value_set)}
-        print(kwargs)
         pipeline.set_params(**kwargs).fit(feature_train, label_train)
-        test_classifier(pipeline, data_dict, features_list, folds)
+        score_stats = test_classifier(pipeline, data_dict, features_list, folds)
+        score_stats_list.append(copy.deepcopy(score_stats))
+    _find_best_params(score_stats_list)
 
+def _find_best_params(score_stats_list):
+    """
+    input: [{'precision': (mean1, std1), 'recall': (mean1, std1), 'accuracy': (mean1, std1), 'clf': clf1 },
+            {'precision': (mean2, std2), 'recall': (mean2, std2), 'accuracy': (mean2, std2), 'clf': clf2 },
+            ...]
+    :param score_stats_list:
+    :return:
+    """
+    precision_list = []
+    recall_list = []
+    accuracy_list = []
+    for element in score_stats_list:
+        try:
+            precision = element['precision'][0]
+            recall = element['recall'][0]
+            accuracy = element['accuracy'][0]
+            precision_list.append(precision)
+            recall_list.append(recall)
+            accuracy_list.append(accuracy)
+        except TypeError as err:
+            print(err)
+    for score_list, score in zip([precision_list, recall_list, accuracy_list], ['precision', 'recall', 'accuracy']):
+        score_array = np.array(score_list)
+        max_score = score_array.max()
+        index_max_score = score_array.argmax()
+        max_clf = score_stats_list[index_max_score]['clf']
+        print('maximum {0}: {1:0.3f}'.format(score, max_score))
+        print('clf for maximum {0}: {1}'.format(score, max_clf))

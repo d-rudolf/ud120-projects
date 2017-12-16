@@ -1,42 +1,6 @@
 ## Udacity project 'Fraud Identification from Enron Emails'
 
-#### 0. Project documentation
 
-Clone the project from github:
-```
-$ git clone git@github.com:d-rudolf/ud120-projects.git && cd ud120-projects && git checkout project_submission 
-```
-
-The branch for project submission is project_submission, not master
-The fastest way to run the code is to use pipenv.
-Install pipenv:
-```
-$ pip install pipenv
-```
-I used python 3.5 throughout the project. Therefore, create a new project with python 3 interpreter:
-```
-$ pipenv --python 3.5
-```
-Install all dependencies from the Pipfile.lock. You should copy the Pipfile.lock file to the pipenv project directory. 
-```
-$ pipenv install --dev
-```
-To run the machine learning code enter
-```
-$ yourpath/ud120-projects/final_project$ python poi_id.py 
-```
-For helper functions I wrote a helper.py file, which is in the same folder as the poi_id.py file. 
-I also wrote a small flask app to visualize the data. To run it locally enter
-```
-$ cd flask_app && python manage.py runserver 
-```
-
-Then, enter 
-```
-http://localhost:8080/
-``` 
-in the browser to use the app. The app allows to plot two features on the x- and y-axis. 
-Select two buttons and press the plot button. To clear the plot press the clear button.
 
 #### 1. Goal of this project and how machine learning is useful in trying to accomplish it (data exploration, outlier investigation)
 
@@ -66,17 +30,40 @@ The data can be roughly classified in three classes, which are income and stock 
 Tab. 1
 
 The goal is to build a model based on the features in Tab. 1 that correctly predicts whether a person is involved in fraud or not (poi = 1 or poi = 0).
+To visualize the data I wrote a small web app, which you can run from the flask_app folder:
+```
+mypath/ud120-projects/final_project/flask_app$ python manage.py runserver
+```  
+If you define outliers as data points, which are several sigmas away from the mean of a distribution, I found three 
+outliers:  'TOTAL', 'LAY KENNETH L', 'SKILLING JEFFREY K'. I did not consider them in my analysis. 
 
-
-+ background on the dataset and how it can be used to answer the project question.
-+ Were there any outliers in the data when you got it, and how did you handle those?, relevant rubric items: “data exploration”, “outlier investigation”
 
 #### 2. Features (create new features, intelligently select features, properly scale features)
+I basically selected the financial features: 
+'salary', 'bonus', 'deferral_payments', 'deferred_income', 'director_fees', 'expenses', 'loan_advances', 
+'long_term_incentive', 'total_payments'. In addition, I created two new features: 
+'from_poi_to_this_person'/'to_messages' and 'from_this_person_to_poi'/'from_messages', i.e. a ratio between  
+from_poi and to_poi to the total in and out emails. This reduced the number of features from four to two and creates 
+reasonable features. 
+Using these features results I can achieve a precision and recall higher than 0.3.       
+I selected these features by testing a different subset of features with the tester.py, which creates a  
+StratifiedShuffleSplit cross validator and calculates the total accuracy, precision and recall.
+Initially, I also tried GridSearchCV, but it gave no agreement with the results from tester.py when defining recall 
+or precision as scores. At this point, I also have to make a criticism that originally, in tester.py, precision, recall 
+and accuracy are calculated as some kind of global values for all folds of StratifiedShuffleSplit. I think, a better 
+approach is to have a distribution of precision, recall and accuracy values where each value comes from a single fold.
+Then, its possible to calculate a mean and a standard deviation, which measures the quality of the prediction.        
+For scaling, I used the preprocessing.scale, which standardizes the dataset, because algorithms like SVM expect a 
+standardized dataset.   
+
 
 + What features did you end up using in your POI identifier, and what selection process did you use to pick them?
 + Did you have to do any scaling? Why or why not? 
-+ As part of the assignment, you should attempt to engineer your own feature that does not come ready-made in the dataset -- explain what feature you tried to make, and the rationale behind it. 
-+ In your feature selection step, if you used an algorithm like a decision tree, please also give the feature importances of the features that you use, and if you used an automated feature selection function like SelectKBest, please report the feature scores and reasons for your choice of parameter values.
++ As part of the assignment, you should attempt to engineer your own feature that does not come ready-made in the dataset 
+-- explain what feature you tried to make, and the rationale behind it. 
++ In your feature selection step, if you used an algorithm like a decision tree, please also give the feature importances 
+of the features that you use, and if you used an automated feature selection function like SelectKBest, please report 
+the feature scores and reasons for your choice of parameter values.
 
 #### 3. Algorithm (pick an algorithm)
 + What algorithm did you end up using? 

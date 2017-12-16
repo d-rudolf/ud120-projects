@@ -66,25 +66,31 @@ def test_classifier(clf, dataset, feature_list, folds = 50):
                 print("All predictions should take value 0 or 1.")
                 print("Evaluating performance for processed predictions:")
                 break
-        accuracy, recall, precision = _calculate_scores(true_positives, true_negatives, false_positives, false_negatives)
-        accuracy_list.append(accuracy)
-        recall_list.append(recall)
-        precision_list.append(precision)
+        try:
+            accuracy, recall, precision = _calculate_scores(true_positives, true_negatives, false_positives, false_negatives)
+            accuracy_list.append(accuracy)
+            recall_list.append(recall)
+            precision_list.append(precision)
+        except TypeError as err:
+            print(err)
     try:
         myscores = {'accuracy': accuracy_list, 'recall': recall_list, 'precision': precision_list}
+        score_stats = {}
         for k, v in myscores.items():
             mean, std = _get_mean_and_std(v)
             print('{0}: {1:.3f} +/- {2:.3f}'.format(k, mean, std))
+            score_stats[k] = (mean, std)
+        score_stats['clf'] = clf
         total_predictions = true_negatives + false_negatives + false_positives + true_positives
         accuracy = 1.0*(true_positives + true_negatives)/total_predictions
         precision = 1.0*true_positives/(true_positives+false_positives)
         recall = 1.0*true_positives/(true_positives+false_negatives)
         f1 = 2.0 * true_positives/(2*true_positives + false_positives+false_negatives)
         f2 = (1+2.0*2.0) * precision*recall/(4*precision + recall)
-        print(clf)
         print(PERF_FORMAT_STRING.format(accuracy, precision, recall, f1, f2, display_precision = 5))
         print(RESULTS_FORMAT_STRING.format(total_predictions, true_positives, false_positives, false_negatives, true_negatives))
-        print("")
+        #print("score_stats: {0}".format(score_stats))
+        return score_stats
     except ZeroDivisionError as err:
         print("Got a divide by zero when trying out: {0}".format(clf))
         print("Precision or recall may be undefined due to a lack of true positive predictions.")

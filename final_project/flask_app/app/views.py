@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import numpy as np
 import pickle
 from flask import jsonify, render_template
@@ -11,7 +13,7 @@ print('views.py')
 def home():
     with open("../final_project_dataset.pkl", "br") as data_file:
         data_dict = pickle.load(data_file)
-    params = data_dict["ALLEN PHILLIP K"].keys()
+    params = OrderedDict(sorted(data_dict["ALLEN PHILLIP K"].items(), key=lambda t: t[0])).keys()
     return render_template('home.html', params=params)
 
 @myapp.route('/data/<feature_x>&<feature_y>')
@@ -19,8 +21,9 @@ def view_data(feature_x, feature_y):
     with open("../final_project_dataset.pkl", "br") as data_file:
         data_dict = pickle.load(data_file)
     data_dict = _remove_outlier(data_dict)
+    data_dict_ordered = OrderedDict(sorted(data_dict.items(), key=lambda t: t[0]))
     data = []
-    for key, value in data_dict.items():
+    for key, value in data_dict_ordered.items():
         if value[feature_x] != 'NaN' and value[feature_y] != 'NaN':
             print(value[feature_x], value[feature_y])
             x = value[feature_x]

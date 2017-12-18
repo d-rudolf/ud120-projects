@@ -170,3 +170,9 @@ My results for both are presented in Tab. 2.
 For my data set, a precision of 0.349 means e.g. that there are 15 true positives and 28 false positives. 
 A recall of 0.375 means that there are 15 true positives and 25 false negatives.
 
+#### 7. References
+- documentation of scikit-learn (http://scikit-learn.org/stable/) 
+- Udacity course on 'Intro to Machine Learning'
+
+I hereby confirm that this submission is my work. I have cited above the origins of any parts of the submission that 
+were taken from Websites, books, forums, blog posts, github repositories, etc.

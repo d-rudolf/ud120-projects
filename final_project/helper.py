@@ -13,6 +13,7 @@ from sklearn.decomposition import PCA
 from sklearn.feature_selection import VarianceThreshold, SelectKBest, chi2
 from sklearn.model_selection import cross_validate
 from sklearn.naive_bayes import GaussianNB
+from sklearn.pipeline import Pipeline
 
 sys.path.append("../tools/")
 from tester import test_classifier
@@ -148,14 +149,41 @@ def _get_mean_and_std(array):
     std = array.std()
     return mean, std
 
-def _get_parameters():
-    parameters = {#'feat_select__k': (18, 19),
-                  'dim_reduct__n_components': (3, 5, 7, 9, 11),
-                  'clf__kernel': ('rbf',),
-                  'clf__C': (5e1, 7e1, 8e1),
-                  'clf__gamma': (1e-1, 5e-1, 1e0)
-                  }
+def _get_parameters(feat_select, clf):
+    parameters = {}
+    if feat_select == 'pca':
+        parameters['dim_reduct__n_components'] = (3, 5, 7, 9, 11)
+    if feat_select == 'k_best':
+        parameters['feat_select__k'] = (3, 5, 7, 9, 11)
+    if clf == 'svm':
+        parameters['clf__C'] = (5e1, 7e1, 8e1)
+        parameters['clf__gamma'] = (1e-1, 5e-1, 1e0)
+    if clf == 'ada_boost':
+        parameters['clf__n_estimators'] = (100, 300, 500)
+        parameters['clf__learning_rate'] = (0.5, 1.0, 1.5)
     return parameters
+
+def _get_best_parameters(feat_select, clf):
+    best_parameters = {}
+    if feat_select == 'pca' and clf == 'svm':
+        best_parameters['dim_reduct__n_components'] = 3
+        best_parameters['clf__C'] = 80
+        best_parameters['clf__gamma'] = 0.5
+        best_parameters['clf__kernel'] = 'rbf'
+    if feat_select == 'k_best' and clf == 'svm':
+        best_parameters['feat_select__k'] = 3
+        best_parameters['clf__C'] = 50
+        best_parameters['clf__gamma'] = 0.5
+        best_parameters['clf__kernel'] = 'rbf'
+    if feat_select == 'pca' and clf == 'ada_boost':
+        best_parameters['dim_reduct__n_components'] = 11
+        best_parameters['clf__n_estimators'] = 100
+        best_parameters['clf__learning_rate'] = 1.0
+    if feat_select == 'k_best' and clf == 'ada_boost':
+        best_parameters['feat_select__k'] = 7
+        best_parameters['clf__n_estimators'] = 100
+        best_parameters['clf__learning_rate'] = 1.5
+    return best_parameters
 
 def _get_new_features(pipeline):
     '''
@@ -201,6 +229,34 @@ def _evaluate_grid_search(grid_search, mypipeline, parameters, feature, label, s
     best_parameters = grid_search.best_estimator_.get_params()
     for param_name in sorted(parameters.keys()):
         print("\t%s: %r" % (param_name, best_parameters[param_name]))
+
+
+def _get_pipeline_and_parameters(feat_select, clf, feat_select_object, clf_object, features, labels):
+    if feat_select == 'pca' and clf == 'svm':
+        mypipeline = Pipeline([('dim_reduct', feat_select_object), ('clf', clf_object)])
+        parameters = _get_parameters(feat_select='pca', clf='svm')
+        best_parameters = _get_best_parameters(feat_select='pca', clf='svm')
+        mypipeline_with_params = mypipeline.set_params(**best_parameters)
+        mypipeline_with_params.fit(features, labels)
+    if feat_select == 'k_best' and clf == 'svm':
+        mypipeline = Pipeline([('feat_select', feat_select_object),('clf', clf_object)])
+        parameters = _get_parameters(feat_select='k_best', clf='svm')
+        best_parameters = _get_best_parameters(feat_select='k_best', clf='svm')
+        mypipeline_with_params = mypipeline.set_params(**best_parameters)
+        mypipeline_with_params.fit(features, labels)
+    if feat_select == 'pca' and clf == 'ada_boost':
+        mypipeline = Pipeline([('dim_reduct', feat_select_object), ('clf', clf_object)])
+        parameters = _get_parameters(feat_select='pca', clf='ada_boost')
+        best_parameters = _get_best_parameters(feat_select='pca', clf='ada_boost')
+        mypipeline_with_params = mypipeline.set_params(**best_parameters)
+        mypipeline_with_params.fit(features, labels)
+    if feat_select == 'k_best' and clf == 'ada_boost':
+        mypipeline = Pipeline([('feat_select', feat_select_object), ('clf', clf_object)])
+        parameters = _get_parameters(feat_select='k_best', clf='ada_boost')
+        best_parameters = _get_best_parameters(feat_select='k_best', clf='ada_boost')
+        mypipeline_with_params = mypipeline.set_params(**best_parameters)
+        mypipeline_with_params.fit(features, labels)
+    return mypipeline, mypipeline_with_params, parameters, best_parameters
 
 def _test_pipeline(pipeline, params, feature_train, label_train, data_dict, features_list, folds):
     """
